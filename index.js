@@ -178,7 +178,6 @@ platformLC7001.prototype.updateAccessoryfromLC7001 = function(lc7001ZID) {
 					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).updateValue(this.hardware.accessories[lc7001ZID].PropertyList.Power);
 				}
 				if (updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).listenerCount('set') == 0) {
-					console.log('Setting listener for ' + updatedAccessory.displayName);
 					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).on('set', function(value, callback) {
 						if (updatedAccessory.lc7001ZID === undefined) {
 							platform.log('Tried to set value before LC7001 initialized. This should not happen. No action taken.');
@@ -199,7 +198,6 @@ platformLC7001.prototype.updateAccessoryfromLC7001 = function(lc7001ZID) {
 					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).updateValue(this.hardware.accessories[lc7001ZID].PropertyList.PowerLevel);
 				}
 				if (updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).listenerCount('set') == 0) {
-					console.log('Setting listener for ' + updatedAccessory.displayName);
 					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).on('set', function(value, callback) {
 						if (updatedAccessory.lc7001ZID === undefined) {
 							platform.log('Tried to set value before LC7001 initialized. This should not happen. No action taken.');
@@ -212,7 +210,6 @@ platformLC7001.prototype.updateAccessoryfromLC7001 = function(lc7001ZID) {
 					});
 				}
 				if (updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).listenerCount('set') == 0) {
-					console.log('Setting listener for ' + updatedAccessory.displayName);
 					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).on('set', function(value, callback) {
 						if (updatedAccessory.lc7001ZID === undefined) {
 							platform.log('Tried to set value before LC7001 initialized. This should not happen. No action taken.');
