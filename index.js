@@ -44,26 +44,8 @@ function platformLC7001(log, config, api) {
 		}.bind(this));
 	}
 
-	this.hardware.emitter.on('initialized',function() {
-		this.accessories.forEach(function(value,index,array) {
-			var hardwareMatch = this.hardware.accessories.findIndex(function(value,index,array) {
-				return value.PropertyList.Name == this.displayName;
-			},value);
-			if (hardwareMatch >= 0) {
-				value.lc7001ZID = hardwareMatch;
-				this.hardware.accessories[hardwareMatch].platformAccessoryIndex = index;
-				this.updateAccessoryfromLC7001(hardwareMatch);
-			} else {
-				array.splice(index,1);
-			}
-		},this);
-		this.hardware.accessories.forEach(function(value,index,array) {
-			if (value.platformAccessoryIndex === undefined) {
-				this.addAccessory(value.PropertyList.Name,index);
-			}
-		},this);
-	}.bind(this));
-	this.hardware.emitter.on('accessoryupdate', this.updateAccessoryfromLC7001.bind(this));
+	this.hardware.emitter.on('initialized',this.matchAccessorieswithLC7001.bind(this));
+	this.hardware.emitter.on('accessoryupdate',this.updateAccessoryfromLC7001.bind(this));
 }
 
 platformLC7001.prototype.configureAccessory = function(accessory) {
@@ -178,6 +160,27 @@ platformLC7001.prototype.addAccessory = function(accessoryName,lc7001Index) {
 
 	this.accessories.push(newAccessory);
 	this.api.registerPlatformAccessories('homebridge-LC7001', 'LC7001', [newAccessory]);
+}
+
+platformLC7001.prototype.matchAccessorieswithLC7001 = function() {
+	this.accessories.forEach(function(value,index,array) {
+		var hardwareMatch = this.hardware.accessories.findIndex(function(value,index,array) {
+			return value.PropertyList.Name == this.displayName;
+		},value);
+		if (hardwareMatch >= 0) {
+			value.lc7001ZID = hardwareMatch;
+			this.hardware.accessories[hardwareMatch].platformAccessoryIndex = index;
+			this.updateAccessoryfromLC7001(hardwareMatch);
+		} else {
+                                array.splice(index,1);
+		}
+	},this);
+	this.hardware.accessories.forEach(function(value,index,array) {
+		if (value.platformAccessoryIndex === undefined) {
+			this.log('Found new accessory on LC7001: ' + value.PropertyList.Name);
+			this.addAccessory(value.PropertyList.Name,index);
+		}
+	},this);
 }
 
 platformLC7001.prototype.updateAccessoryfromLC7001 = function(lc7001ZID) {
