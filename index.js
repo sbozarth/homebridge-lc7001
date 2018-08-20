@@ -58,33 +58,6 @@ platformLC7001.prototype.configureAccessory = function(accessory) {
 		callback();
 	});
 
-	if (accessory.getService(Service.Lightbulb)) {
-		accessory.getService(Service.Lightbulb)
-		.getCharacteristic(Characteristic.On)
-		.on('set', function(value, callback) {
-			if (accessory.lc7001ZID === undefined) {
-				this.log('Tried to set value before LC7001 initialized. No action taken.');
-			} else {
-				var propertyList = {};
-				propertyList.Power = value;
-				platform.hardware.sendCMD(platform.hardware.cmdSetAccessory(accessory.lc7001ZID,propertyList));
-				callback();
-			}
-		});
-		accessory.getService(Service.Lightbulb)
-		.getCharacteristic(Characteristic.Brightness)
-		.on('set', function(value, callback) {
-			if (accessory.lc7001ZID === undefined) {
-				this.log('Tried to set value before LC7001 initialized. No action taken.');
-			} else {
-				var propertyList = {};
-				propertyList.PowerLevel = value;
-				platform.hardware.sendCMD(platform.hardware.cmdSetAccessory(accessory.lc7001ZID,propertyList));
-				callback();
-			}
-		});
-	}
-
 	this.accessories.push(accessory);
 }
 
@@ -184,24 +157,77 @@ platformLC7001.prototype.matchAccessorieswithLC7001 = function() {
 }
 
 platformLC7001.prototype.updateAccessoryfromLC7001 = function(lc7001ZID) {
+	var platform = this;
+
 	if (lc7001ZID !== undefined) {
 		var updatedAccessory = this.accessories.find(function(value,index,array) {
 			return value.lc7001ZID === lc7001ZID;
 		});
 	}
 	if (updatedAccessory === undefined) {
-		this.log('Attempted to update an accessory with no LC7001 zone association. The ZID was ' + lc7001ZID + '.');
+		this.log('Attempted to update an accessory with no LC7001 zone association. The ZID was ' + lc7001ZID + '. This can happen if the LC7001 pushes an update before polling is finished.');
 	} else {
 		if (this.hardware.accessories[lc7001ZID].PropertyList.Name != updatedAccessory.displayName) {
 			console.log('Name change!');
 			console.log('LC7001: ' + this.hardware.accessories[lc7001ZID].PropertyList.Name + ' Homebridge: ' + updatedAccessory.displayName);
 			//updatedAccessory.displayName = value.Name;
 		}
-		if (this.hardware.accessories[lc7001ZID].PropertyList.Power != updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).value) {
-			updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).updateValue(this.hardware.accessories[lc7001ZID].PropertyList.Power);
-		}
-		if (this.hardware.accessories[lc7001ZID].PropertyList.PowerLevel != updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).value) {
-			updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).updateValue(this.hardware.accessories[lc7001ZID].PropertyList.PowerLevel);
+		switch(this.hardware.accessories[lc7001ZID].PropertyList.DeviceType) {
+			case 'Switch':
+				if (this.hardware.accessories[lc7001ZID].PropertyList.Power != updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).value) {
+					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).updateValue(this.hardware.accessories[lc7001ZID].PropertyList.Power);
+				}
+				if (updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).listenerCount('set') == 0) {
+					console.log('Setting listener for ' + updatedAccessory.displayName);
+					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).on('set', function(value, callback) {
+						if (updatedAccessory.lc7001ZID === undefined) {
+							platform.log('Tried to set value before LC7001 initialized. This should not happen. No action taken.');
+						} else {
+							var propertyList = {};
+							propertyList.Power = value;
+							platform.hardware.sendCMD(platform.hardware.cmdSetAccessory(updatedAccessory.lc7001ZID,propertyList));
+							callback();
+						}
+					});
+				}
+				break;
+			case 'Dimmer':
+				if (this.hardware.accessories[lc7001ZID].PropertyList.Power != updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).value) {
+					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).updateValue(this.hardware.accessories[lc7001ZID].PropertyList.Power);
+				}
+				if (this.hardware.accessories[lc7001ZID].PropertyList.PowerLevel != updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).value) {
+					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).updateValue(this.hardware.accessories[lc7001ZID].PropertyList.PowerLevel);
+				}
+				if (updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).listenerCount('set') == 0) {
+					console.log('Setting listener for ' + updatedAccessory.displayName);
+					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).on('set', function(value, callback) {
+						if (updatedAccessory.lc7001ZID === undefined) {
+							platform.log('Tried to set value before LC7001 initialized. This should not happen. No action taken.');
+						} else {
+							var propertyList = {};
+							propertyList.Power = value;
+							platform.hardware.sendCMD(platform.hardware.cmdSetAccessory(updatedAccessory.lc7001ZID,propertyList));
+							callback();
+						}
+					});
+				}
+				if (updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).listenerCount('set') == 0) {
+					console.log('Setting listener for ' + updatedAccessory.displayName);
+					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).on('set', function(value, callback) {
+						if (updatedAccessory.lc7001ZID === undefined) {
+							platform.log('Tried to set value before LC7001 initialized. This should not happen. No action taken.');
+						} else {
+							var propertyList = {};
+							propertyList.PowerLevel = value;
+							platform.hardware.sendCMD(platform.hardware.cmdSetAccessory(updatedAccessory.lc7001ZID,propertyList));
+							callback();
+						}
+					});
+				}
+				break;
+			default:
+				this.log('This plugin has not been programmed for this particular accessory.');
+				break;
 		}
 	}
 }
