@@ -15,27 +15,35 @@ module.exports = function(homebridgeAPI) {
 function platformLC7001(log, config, api) {
 	log('LC7001 platform initialization.');
 	var platform = this;
-	this.log = log;
+
+	this.accessories = [];
 	this.config = config;
 	this.hardware = require('./lib/lc7001.js');
 	this.hardware.log = log;
-	this.accessories = [];
+	this.hostname = '';
+	this.log = log;
+	this.port = 2112;
+
 	if (api) {
 		this.api = api;
 		this.api.on('didFinishLaunching', function() {
-			platform.log('DidFinishLaunching');
+			this.log('Homebridge issued DidFinishLaunching event.');
+			this.log('Reading configuration for LC7001.');
+			if (config['lc7001-hostname']) {
+				this.hostname = config['lc7001-hostname'];
+				if (config['lc7001-port']) {
+					this.port = config['lc7001-port'];
+				}
+				this.log('Attempting to connect to LC7001 at ' + this.hostname + ':' + this.port + '.');
+				this.hardware.interface.connect(this.port,this.hostname,function() {
+					this.setEncoding('ascii');
+				});
+			} else {
+				this.log('No hostname configured. Nothing to do.');
+			}
 		}.bind(this));
 	}
-	if (config['lc7001-hostname']) {
-		this.hardware.hostname = config['lc7001-hostname'];
-		if (config['lc7001-port']) {
-			this.hardware.port = config['lc7001-port'];
-		}
-		this.log('Attempting to connect to LC7001 at ' + this.hardware.hostname + ':' + this.hardware.port + '.');
-		this.hardware.openConnection();
-	} else {
-		this.log('No hostname configured. Nothing to do.');
-	}
+
 	this.hardware.emitter.on('initialized',function() {
 		this.accessories.forEach(function(value,index,array) {
 			var hardwareMatch = this.hardware.accessories.findIndex(function(value,index,array) {
