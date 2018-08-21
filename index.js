@@ -92,7 +92,7 @@ platformLC7001.prototype.configurationRequestHandler = function(context, request
 */
 
 platformLC7001.prototype.addAccessory = function(accessoryName,lc7001Index) {
-	this.log('Add Accessory');
+	this.log('Adding accessory ' + accessoryName + ' with ZID ' + lc7001Index + '.');
 	var platform = this;
 	var uuid;
 
@@ -101,39 +101,20 @@ platformLC7001.prototype.addAccessory = function(accessoryName,lc7001Index) {
 	var newAccessory = new Accessory(accessoryName, uuid);
 	newAccessory.lc7001ZID = lc7001Index;
 
-	newAccessory.on('identify', function(paired, callback) {
-		platform.log(newAccessory.displayName, 'Identify!!!');
-		callback();
-	});
-
-	newAccessory.addService(Service.Lightbulb,accessoryName)
-	.getCharacteristic(Characteristic.On)
-	.on('set', function(value, callback) {
-		if (newAccessory.lc7001ZID === undefined) {
-			this.log('Tried to set value before LC7001 initialized. No action taken.');
-		} else {
-			var propertyList = {};
-			propertyList.Power = value;
-			platform.hardware.sendCMD(platform.hardware.cmdSetAccessory(newAccessory.lc7001ZID,propertyList));
-			callback();
-		}
-	});
- 	if (platform.hardware.accessories[newAccessory.lc7001ZID].PropertyList.DeviceType == 'Dimmer') {
-		newAccessory.getService(Service.Lightbulb)
-		.getCharacteristic(Characteristic.Brightness)
-		.on('set', function(value, callback) {
-			if (newAccessory.lc7001ZID === undefined) {
-				this.log('Tried to set value before LC7001 initialized. No action taken.');
-			} else {
-				var propertyList = {};
-				propertyList.PowerLevel = value;
-				platform.hardware.sendCMD(platform.hardware.cmdSetAccessory(newAccessory.lc7001ZID,propertyList));
-				callback();
-			}
-		});
+	switch(this.hardware.accessories[newAccessory.lc7001ZID].PropertyList.DeviceType) {
+		case 'Switch':
+			newAccessory.addService(Service.Lightbulb,accessoryName)
+			break;
+		case 'Dimmer':
+			newAccessory.addService(Service.Lightbulb,accessoryName)
+			break;
+		default:
+			this.log(accessoryName + ' has DeviceType=' + this.hardware.accessories[newAccessory.lc7001ZID].PropertyList.DeviceType + ' which is not supported. No services configured.');
+			break;
 	}
 
-	this.accessories.push(newAccessory);
+	this.configureAccessory(newAccessory);
+	this.updateAccessoryfromLC7001(newAccessory.lc7001ZID);
 	this.api.registerPlatformAccessories('homebridge-LC7001', 'LC7001', [newAccessory]);
 }
 
