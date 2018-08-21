@@ -115,7 +115,7 @@ platformLC7001.prototype.matchAccessorieswithLC7001 = function() {
 			this.updateAccessoryfromLC7001(value);
 		} else {
 			this.log('Unable to find accessory ' + value.displayName + ' on LC7001. Removing....');
-			this.api.unregisterPlatformAccessories('homebridge-LC7001', 'LC7001', array.slice(index,1));
+			this.api.unregisterPlatformAccessories('homebridge-LC7001', 'LC7001', array.slice(index));
 			array.splice(index,1);
 		}
 	},this);
