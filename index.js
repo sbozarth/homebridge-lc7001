@@ -61,6 +61,7 @@ platformLC7001.prototype.configureAccessory = function(accessory) {
 	this.accessories.push(accessory);
 }
 
+/*
 platformLC7001.prototype.configurationRequestHandler = function(context, request, callback) {
 	this.log('Context: ', JSON.stringify(context));
 	this.log('Request: ', JSON.stringify(request));
@@ -88,6 +89,7 @@ platformLC7001.prototype.configurationRequestHandler = function(context, request
 
 	callback(respDict);
 }
+*/
 
 platformLC7001.prototype.addAccessory = function(accessoryName,lc7001Index) {
 	this.log('Add Accessory');
