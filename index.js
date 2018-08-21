@@ -144,7 +144,9 @@ platformLC7001.prototype.matchAccessorieswithLC7001 = function() {
 			this.hardware.accessories[hardwareMatch].platformAccessoryIndex = index;
 			this.updateAccessoryfromLC7001(value);
 		} else {
-			//Need to implement removeAccessory - array.splice(index,1);
+			this.log('Unable to find accessory ' + value.displayName + ' on LC7001. Removing....');
+			this.api.unregisterPlatformAccessories('homebridge-LC7001', 'LC7001', array.slice(index,1));
+			array.splice(index,1);
 		}
 	},this);
 	this.hardware.accessories.forEach(function(value,index,array) {
@@ -226,18 +228,5 @@ platformLC7001.prototype.updateAccessoriesReachability = function() {
 	for (var index in this.accessories) {
 		var accessory = this.accessories[index];
 		accessory.updateReachability(false);
-	}
-}
-
-platformLC7001.prototype.removeAccessory = function() {
-	this.log('Remove Accessory');
-	this.api.unregisterPlatformAccessories('homebridge-LC7001', 'LC7001', this.accessories);
-
-	this.accessories = [];
-}
-
-platformLC7001.prototype.processAccessories = function() {
-	if (this.accessories.length == 0) {
-		console.log('No platform accessories.');
 	}
 }
