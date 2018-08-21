@@ -45,7 +45,14 @@ function platformLC7001(log, config, api) {
 	}
 
 	this.hardware.emitter.on('initialized',this.matchAccessorieswithLC7001.bind(this));
-	this.hardware.emitter.on('accessoryupdate',this.updateAccessoryfromLC7001.bind(this));
+	this.hardware.emitter.on('accessoryupdate',function(lc7001ZID) {
+		var updatedAccessory = this.getAccessoryfromZID(lc7001ZID);
+		if (updatedAccessory === undefined) {
+			this.log('LC7001 updated an accessory that is not registered with the plugin.');
+		} else {
+			this.updateAccessoryfromLC7001(updatedAccessory);
+		}
+	}.bind(this));
 }
 
 platformLC7001.prototype.configureAccessory = function(accessory) {
@@ -114,8 +121,17 @@ platformLC7001.prototype.addAccessory = function(accessoryName,lc7001Index) {
 	}
 
 	this.configureAccessory(newAccessory);
-	this.updateAccessoryfromLC7001(newAccessory.lc7001ZID);
+	this.updateAccessoryfromLC7001(newAccessory);
 	this.api.registerPlatformAccessories('homebridge-LC7001', 'LC7001', [newAccessory]);
+}
+
+platformLC7001.prototype.getAccessoryfromZID = function(lc7001ZID) {
+	if (lc7001ZID !== undefined) {
+		var foundAccessory = this.accessories.find(function(value,index,array) {
+			return value.lc7001ZID === lc7001ZID;
+		});
+	}
+	return foundAccessory;
 }
 
 platformLC7001.prototype.matchAccessorieswithLC7001 = function() {
@@ -126,9 +142,9 @@ platformLC7001.prototype.matchAccessorieswithLC7001 = function() {
 		if (hardwareMatch >= 0) {
 			value.lc7001ZID = hardwareMatch;
 			this.hardware.accessories[hardwareMatch].platformAccessoryIndex = index;
-			this.updateAccessoryfromLC7001(hardwareMatch);
+			this.updateAccessoryfromLC7001(value);
 		} else {
-                                array.splice(index,1);
+			//Need to implement removeAccessory - array.splice(index,1);
 		}
 	},this);
 	this.hardware.accessories.forEach(function(value,index,array) {
@@ -139,26 +155,19 @@ platformLC7001.prototype.matchAccessorieswithLC7001 = function() {
 	},this);
 }
 
-platformLC7001.prototype.updateAccessoryfromLC7001 = function(lc7001ZID) {
+platformLC7001.prototype.updateAccessoryfromLC7001 = function(updatedAccessory) {
 	var platform = this;
 
-	if (lc7001ZID !== undefined) {
-		var updatedAccessory = this.accessories.find(function(value,index,array) {
-			return value.lc7001ZID === lc7001ZID;
-		});
-	}
-	if (updatedAccessory === undefined) {
-		this.log('Attempted to update an accessory with no LC7001 zone association. The ZID was ' + lc7001ZID + '. This can happen if the LC7001 pushes an update before polling is finished.');
-	} else {
-		if (this.hardware.accessories[lc7001ZID].PropertyList.Name != updatedAccessory.displayName) {
+	if ((updatedAccessory !== undefined) && (updatedAccessory.lc7001ZID !== undefined)) {
+		if (this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.Name != updatedAccessory.displayName) {
 			console.log('Name change!');
-			console.log('LC7001: ' + this.hardware.accessories[lc7001ZID].PropertyList.Name + ' Homebridge: ' + updatedAccessory.displayName);
+			console.log('LC7001: ' + this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.Name + ' Homebridge: ' + updatedAccessory.displayName);
 			//updatedAccessory.displayName = value.Name;
 		}
-		switch(this.hardware.accessories[lc7001ZID].PropertyList.DeviceType) {
+		switch(this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.DeviceType) {
 			case 'Switch':
-				if (this.hardware.accessories[lc7001ZID].PropertyList.Power != updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).value) {
-					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).updateValue(this.hardware.accessories[lc7001ZID].PropertyList.Power);
+				if (this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.Power != updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).value) {
+					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).updateValue(this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.Power);
 				}
 				if (updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).listenerCount('set') == 0) {
 					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).on('set', function(value, callback) {
@@ -174,11 +183,11 @@ platformLC7001.prototype.updateAccessoryfromLC7001 = function(lc7001ZID) {
 				}
 				break;
 			case 'Dimmer':
-				if (this.hardware.accessories[lc7001ZID].PropertyList.Power != updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).value) {
-					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).updateValue(this.hardware.accessories[lc7001ZID].PropertyList.Power);
+				if (this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.Power != updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).value) {
+					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).updateValue(this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.Power);
 				}
-				if (this.hardware.accessories[lc7001ZID].PropertyList.PowerLevel != updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).value) {
-					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).updateValue(this.hardware.accessories[lc7001ZID].PropertyList.PowerLevel);
+				if (this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.PowerLevel != updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).value) {
+					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.Brightness).updateValue(this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.PowerLevel);
 				}
 				if (updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).listenerCount('set') == 0) {
 					updatedAccessory.getService(Service.Lightbulb).getCharacteristic(Characteristic.On).on('set', function(value, callback) {
