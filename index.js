@@ -68,36 +68,6 @@ platformLC7001.prototype.configureAccessory = function(accessory) {
 	this.accessories.push(accessory);
 }
 
-/*
-platformLC7001.prototype.configurationRequestHandler = function(context, request, callback) {
-	this.log('Context: ', JSON.stringify(context));
-	this.log('Request: ', JSON.stringify(request));
-
-	if (request && request.response && request.response.inputs && request.response.inputs.name) {
-		this.addAccessory(request.response.inputs.name);
-
-		callback(null, 'platform', true, {"platform":"platformLC7001"});
-	}
-
-	var respDict = {
-		"type":"Interface",
-		"interface":"input",
-		"title":"Add Accessory",
-		"items":[
-			{
-				"id":"name",
-				"title":"Name",
-				"placeholder":"LC7001 Light"
-			}
-		]
-	}
-
-	context.ts = 'Hello';
-
-	callback(respDict);
-}
-*/
-
 platformLC7001.prototype.addAccessory = function(accessoryName,lc7001Index) {
 	this.log('Adding accessory ' + accessoryName + ' with ZID ' + lc7001Index + '.');
 	var platform = this;
