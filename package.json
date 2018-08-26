@@ -1,11 +1,33 @@
 {
-	"name":"homebridge-LC7001",
-	"version":"0.3.0",
-	"keywords":[
-		"homebridge-plugin"
-	],
-	"engines":{
-		"node":">=0.12.0",
-		"homebridge":">=0.2.0"
-	}
+  "name": "homebridge-LC7001",
+  "version": "0.3.0",
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge",
+    "homekit",
+    "legrand",
+    "lc7001",
+    "adorne",
+    "on-q",
+    "rflc"
+  ],
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "description": "Homebridge plugin to communicate with Legrand LC7001. (RFLC, Adorne, and On-Q)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sbozarth/homebridge-LC7001.git"
+  },
+  "author": "Sean Raymond Bozarth",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sbozarth/homebridge-LC7001/issues"
+  },
+  "homepage": "https://github.com/sbozarth/homebridge-LC7001#readme"
 }
