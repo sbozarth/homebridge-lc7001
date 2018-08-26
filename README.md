@@ -11,29 +11,28 @@ This plugin requires the following addition to the Homebridge config.json:
   "platforms": [
     {
       "platform" : "LC7001",
-      "name" : "Adorne",
-      "lc7001-hostname" : "x.x.x.x"
+      "name" : "LC7001"
     }
   ]
 }
 
-Where "x.x.x.x" is the IP address of your LC7001. Replacing "x.x.x.x" with a hostname or IPv6 address should work as the string is passed to the net.Socket Node.js object without modification.
-The "name" field is whatever you would like it to be; it is simply what shows up in the Homebridge log.
-The "platform" field is coded into the plugin; do not change it.
-
-If your LC7001 for some reason does not use port 2112, you may specify a different port:
+This plugin supports two optional parameters. You may specify either one or both:
 
 {
   "platforms": [
     {
       "platform" : "LC7001",
-      "name" : "Adorne",
-      "lc7001-hostname" : "x.x.x.x",
+      "name" : "LC7001",
+      "lc7001-hostname" : "LCM1.local",
       "lc7001-port" : 2112
     }
   ]
 }
 
+If you do not specify lc7001-hostname or lc7001-port, the defaults of "LCM1.local" and 2112 will be used. "LCM1.local" is a mDNS hostname that the LC7001 will answer. "LCM1.local" can be replaced with any hostname or IP address that can be resolved by the net.Socket Node.js object.
+The "name" field is whatever you would like it to be; it is simply what shows up in the Homebridge log.
+The "platform" field is coded into the plugin; do not change it.
+
 Configure your LC7001 using the Legrand Lighting Control app, available here: https://www.legrand.us/home-automation/rflc/rflc-app.aspx
-Name your light switches and dimmers wisely, as the name is used as the unique identifier. Renaming lights in the Legrand Lighting Control app has not been tested.
-The first time you run the plugin, it will poll the LC7001 and create all of the switches in HomeKit as light bulbs in the default room. You can rename the lights as much as you want within HomeKit.
+The plugin should work as long as the LC7001 is attached to the same network. If not in the same broadcast domain (for mDNS), you will need to specify lc7001-hostname in config.json. 
+The names you give your light switches and dimmers are treated as unique indentifiers. If you rename any object in the Legrand Lighting Control app, the accessory will be removed from HomeKit and readded under the new name. You can rename the lights as much as you want within HomeKit, just not within the Legrand Lighting Control app.
