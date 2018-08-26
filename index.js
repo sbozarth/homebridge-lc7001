@@ -130,9 +130,9 @@ platformLC7001.prototype.updateAccessoryfromLC7001 = function(updatedAccessory) 
 
 	if ((updatedAccessory !== undefined) && (updatedAccessory.lc7001ZID !== undefined)) {
 		if (this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.Name != updatedAccessory.displayName) {
-			console.log('Name change!');
-			console.log('LC7001: ' + this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.Name + ' Homebridge: ' + updatedAccessory.displayName);
-			//updatedAccessory.displayName = value.Name;
+			if (this.hardware.isInitialized) {
+				this.matchAccessorieswithLC7001();
+			}
 		}
 		switch(this.hardware.accessories[updatedAccessory.lc7001ZID].PropertyList.DeviceType) {
 			case 'Switch':
