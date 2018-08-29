@@ -1,5 +1,5 @@
 {
-  "name": "homebridge-LC7001",
+  "name": "homebridge-lc7001",
   "version": "0.4.0",
   "keywords": [
     "homebridge-plugin",
@@ -22,12 +22,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sbozarth/homebridge-LC7001.git"
+    "url": "git+https://github.com/sbozarth/homebridge-lc7001.git"
   },
   "author": "Sean Raymond Bozarth",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sbozarth/homebridge-LC7001/issues"
+    "url": "https://github.com/sbozarth/homebridge-lc7001/issues"
   },
-  "homepage": "https://github.com/sbozarth/homebridge-LC7001#readme"
+  "homepage": "https://github.com/sbozarth/homebridge-lc7001#readme"
 }

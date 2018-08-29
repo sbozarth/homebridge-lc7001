@@ -1,4 +1,4 @@
-# homebridge-LC7001
+# homebridge-lc7001
 Homebridge plugin to communicate with Legrand LC7001. (RFLC, Adorne, and On-Q)
 
 ***Currently, this plugin has only been written for light switches and dimmers.***

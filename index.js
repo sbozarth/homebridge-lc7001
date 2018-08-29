@@ -9,7 +9,7 @@ module.exports = function(homebridgeAPI) {
 	Characteristic = homebridgeAPI.hap.Characteristic;
 	UUIDGen = homebridgeAPI.hap.uuid;
 
-	homebridgeAPI.registerPlatform('homebridge-LC7001', 'LC7001', platformLC7001, true);
+	homebridgeAPI.registerPlatform('homebridge-lc7001', 'LC7001', platformLC7001, true);
 }
 
 function platformLC7001(log, config, api) {
@@ -90,7 +90,7 @@ platformLC7001.prototype.addAccessory = function(accessoryName,lc7001Index) {
 
 	this.configureAccessory(newAccessory);
 	this.updateAccessoryfromLC7001(newAccessory);
-	this.api.registerPlatformAccessories('homebridge-LC7001', 'LC7001', [newAccessory]);
+	this.api.registerPlatformAccessories('homebridge-lc7001', 'LC7001', [newAccessory]);
 }
 
 platformLC7001.prototype.getAccessoryfromZID = function(lc7001ZID) {
@@ -113,7 +113,7 @@ platformLC7001.prototype.matchAccessorieswithLC7001 = function() {
 			this.updateAccessoryfromLC7001(value);
 		} else {
 			this.log('Unable to find accessory ' + value.displayName + ' on LC7001. Removing....');
-			this.api.unregisterPlatformAccessories('homebridge-LC7001', 'LC7001', array.slice(index));
+			this.api.unregisterPlatformAccessories('homebridge-lc7001', 'LC7001', array.slice(index));
 			array.splice(index,1);
 		}
 	},this);
