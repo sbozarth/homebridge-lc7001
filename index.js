@@ -20,7 +20,7 @@ function platformLC7001(log, config, api) {
 	this.config = config;
 	this.hardware = require('./lib/lc7001.js');
 	this.hardware.log = log;
-	this.hardware.tcpOptions.hostname = 'LCM1.local';
+	this.hardware.tcpOptions.host = 'LCM1.local';
 	this.hardware.tcpOptions.port = 2112;
 	this.hostname = 'LCM1.local';
 	this.log = log;
@@ -40,16 +40,15 @@ function platformLC7001(log, config, api) {
 				this.port = config['lc7001-port'];
 			}
 			this.log('Attempting to connect to LC7001 at ' + this.hostname + ':' + this.port + '.');
-			this.log('Attempting to connect to LC7001 at ' + this.hardware.tcpOptions.hostname + ':' + this.hardware.tcpOptions.port + '.');
+			this.log('Attempting to connect to LC7001 at ' + this.hardware.tcpOptions.host + ':' + this.hardware.tcpOptions.port + '.');
+			this.log(this.hardware.tcpOptions);
 			this.hardware.interface.connect(this.hardware.tcpOptions,function() {
 				this.setEncoding('ascii');
-		}.bind(this));
-/*
-			this.hardware.interface.connect(this.port,this.hostname,function() {
-				this.setEncoding('ascii');
 			});
+//			this.hardware.interface.connect(this.port,this.hostname,function() {
+//				this.setEncoding('ascii');
+//			});
 		}.bind(this));
-*/
 	}
 
 	this.hardware.emitter.on('initialized',this.matchAccessorieswithLC7001.bind(this));
