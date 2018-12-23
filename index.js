@@ -20,6 +20,8 @@ function platformLC7001(log, config, api) {
 	this.config = config;
 	this.hardware = require('./lib/lc7001.js');
 	this.hardware.log = log;
+	this.hardware.tcpOptions.hostname = 'LCM1.local';
+	this.hardware.tcpOptions.port = 2112;
 	this.hostname = 'LCM1.local';
 	this.log = log;
 	this.port = 2112;
@@ -30,16 +32,24 @@ function platformLC7001(log, config, api) {
 			this.log('Homebridge issued DidFinishLaunching event.');
 			this.log('Reading configuration for LC7001.');
 			if (config['lc7001-hostname']) {
+				this.hardware.tcpOptions.hostname = config['lc7001-hostname'];
 				this.hostname = config['lc7001-hostname'];
 			}
 			if (config['lc7001-port']) {
+				this.hardware.tcpOptions.port = config['lc7001-port'];
 				this.port = config['lc7001-port'];
 			}
 			this.log('Attempting to connect to LC7001 at ' + this.hostname + ':' + this.port + '.');
+			this.log('Attempting to connect to LC7001 at ' + this.hardware.tcpOptions.hostname + ':' + this.hardware.tcpOptions.port + '.');
+			this.hardware.interface.connect(this.hardware.tcpOptions,function() {
+				this.setEncoding('ascii');
+		}.bind(this));
+/*
 			this.hardware.interface.connect(this.port,this.hostname,function() {
 				this.setEncoding('ascii');
 			});
 		}.bind(this));
+*/
 	}
 
 	this.hardware.emitter.on('initialized',this.matchAccessorieswithLC7001.bind(this));
