@@ -3,7 +3,7 @@
   "pluginType": "platform",
   "singular": true,
   "headerDisplay": "Homebridge plugin to communicate with Legrand LC7001. (RFLC, Adorne, and On-Q)",
-  "footerDisplay": "Configure your LC7001 using the Legrand Lighting Control app. The names you give your light switches and dimmers are treated as unique indentifiers. If you rename any object in the Legrand Lighting Control app, the accessory will be removed from HomeKit and readded under the new name. You can rename the lights as much as you want within HomeKit, just not within the Legrand Lighting Control app.",
+  "footerDisplay": "Configure your LC7001 using the Legrand Lighting Control app. The names you give your light switches and dimmers are treated as unique indentifiers. If you rename any object in the Legrand Lighting Control app, the accessory will be removed from HomeKit and re-added under the new name. You can rename the lights as much as you want within HomeKit, just not within the Legrand Lighting Control app.",
   "schema": {
     "type": "object",
     "properties": {
@@ -12,6 +12,7 @@
         "type": "string",
         "default": "LC7001",
         "description": "Plugin name as it will appear in logs.",
+        "minlength": 1,
         "required": true
       },
       "lc7001-hostname": {
@@ -19,18 +20,120 @@
         "type": "string",
         "placeholder": "LCM1.local",
         "description": "Hostname/IP address of LC7001 device. The default (\"LCM1.local\") is an mDNS hostname the LC7001 device will answer.",
-        "required": false,
-        "format": "hostname"
+        "format": "hostname",
+        "required": false
       },
       "lc7001-port": {
         "title": "Port",
-        "type": "number",
+        "type": "integer",
         "placeholder": 2112,
         "description": "TCP port of LC7001 device. Default is 2112.",
+        "minimum": 1,
+        "maximum": 65535,
+        "slider": false,
+        "required": false
+      },
+      "lc7001-localaddress": {
+        "title": "Source IP Address",
+        "type": "string",
+        "description": "Source IP address from which to contact LC7001.",
+        "required": false
+      },
+      "lc7001-localport": {
+        "title": "Source TCP Port",
+        "type": "integer",
+        "description": "Source TCP port from which to contact LC7001.",
+        "minimum": 1,
+        "maximum": 65535,
+        "required": false
+      },
+      "lc7001-family": {
+        "title": "IP Version",
+        "type": "integer",
+        "description": "IP version with which to contact LC7001.",
+        "oneOf": [
+          {
+            "title": "IPv4 or IPv6",
+            "enum": [0]
+          },
+          {
+            "title": "IPv4",
+            "enum": [4]
+          },
+          {
+            "title": "IPv6",
+            "enum": [6]
+          }
+        ]
+      },
+      "lc7001-delimiter": {
+        "title": "JSON Delimiter",
+        "type": "string",
+        "placeholder": "\\0",
+        "description": "Delimiter LC7001 uses to separate JSON objects. Default is null character. (Escape strings will need to be manually configured.)",
+        "required": false
+      },
+      "logBroadcastDiagnostics": {
+        "title": "Log LC7001 BroadcastDiagnostics messages?",
+        "type": "boolean",
+        "placeholder": false,
+        "description": "Enable to log LC7001 debug messages.",
+        "required": false
+      },
+      "logBroadcastMemory": {
+        "title": "Log LC7001 BroadcastMemory messages?",
+        "type": "boolean",
+        "placeholder": false,
+        "description": "Enable to log LC7001 debug messages.",
+        "required": false
+      },
+      "logDebugMessages": {
+        "title": "Log LC7001 debug messages?",
+        "type": "boolean",
+        "placeholder": false,
+        "description": "Enable to log LC7001 debug messages.",
+        "required": false
+      },
+      "logEliotErrors": {
+        "title": "Log LC7001 \"EliotErrors\" messages?",
+        "type": "boolean",
+        "placeholder": false,
+        "description": "Enable to log LC7001 \"EliotErrors\" messages.",
+        "required": false
+      },
+      "useOldUUID": {
+        "title": "Use old UUID generation key?",
+        "type": "boolean",
+        "placeholder": false,
+        "description": "Enable to generate UUIDs using method prior to version 1.0.",
         "required": false
       }
     }
   },
-  "form": null,
+  "form": [
+    "name",
+    "lc7001-hostname",
+    {
+      "key": "lc7001-port",
+      "type": "text"
+    },
+    {
+      "type": "advancedfieldset",
+      "items": [
+        "lc7001-localaddress",
+        {
+          "key": "lc7001-localport",
+          "type": "text"
+        },
+        "lc7001-family",
+        "lc7001-delimiter",
+        "logBroadcastDiagnostics",
+        "logBroadcastMemory",
+        "logDebugMessages",
+        "logEliotErrors",
+        "useOldUUID"
+      ]
+    }
+  ],
   "display": null
 }

@@ -13,10 +13,10 @@
   ],
   "engines": {
     "node": ">=0.12.0",
-    "homebridge": ">=0.2.0"
+    "homebridge": ">=1.1.0"
   },
   "description": "Homebridge plugin to communicate with Legrand LC7001. (RFLC, Adorne, and On-Q)",
-  "main": "index.js",
+  "main": "dev/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -29,5 +29,8 @@
   "bugs": {
     "url": "https://github.com/sbozarth/homebridge-lc7001/issues"
   },
-  "homepage": "https://github.com/sbozarth/homebridge-lc7001#readme"
+  "homepage": "https://github.com/sbozarth/homebridge-lc7001#readme",
+  "devDependencies": {
+    "@types/node": "^14.6.4"
+  }
 }
