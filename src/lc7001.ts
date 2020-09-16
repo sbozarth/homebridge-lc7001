@@ -95,10 +95,6 @@ export class LC7001 {
             this.platform.log.debug('-->Local IP Address:',this.interface.localAddress);
             this.platform.log.debug('-->Local TCP Port:  ',this.interface.localPort);
         });
-        this.interface.on('ready',() => {
-            this.platform.log.debug('Connection to LC7001 ready for use.')
-            this.sendCMDArray([this.cmdGetSystemInfo(),this.cmdGetLC7001Properties(),this.cmdListAccessories()]);
-        });
         this.interface.on('close',(hadError) => {
             if (hadError) {
                 this.platform.log.error('Connection to LC7001 closed due to error. Waiting 30 seconds to reconnect....');
@@ -107,7 +103,6 @@ export class LC7001 {
                 this.platform.log.info('Connection to LC7001 closed. Reconnecting....');
                 this.connectLC7001();
             }
-
         });
         this.interface.on('data',(data: string) => {
             this.platform.log.debug('Data received from LC7001 (stringified):',JSON.stringify(data));
@@ -121,8 +116,15 @@ export class LC7001 {
             this.platform.log.error('Error on LC7001 connection:')
             this.platform.log.error(err);
         });
+        this.interface.on('ready',() => {
+            this.platform.log.debug('Connection to LC7001 ready for use.')
+            this.sendCMDArray([this.cmdGetSystemInfo(),this.cmdGetLC7001Properties(),this.cmdListAccessories()]);
+        });
+        this.interface.on('timeout',() => {
+            this.platform.log.warn('Connection to LC7001 has been inactive for 30 seconds. Destroying connection....');
+            this.interface.destroy();
+        });
 
-        //Connect the Socket to LC7001.
         this.connectLC7001();
     }
 
@@ -206,6 +208,7 @@ export class LC7001 {
         this.platform.log.debug('--> family:',this.tcpOptions.family);
         this.interface.connect(this.tcpOptions,() => {
             this.interface.setEncoding('ascii');
+            this.interface.setTimeout(30000);
         });
     }
 
