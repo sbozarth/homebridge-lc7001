@@ -88,7 +88,7 @@ export class LC7001 {
         this.emitter = new EventEmitter;
         this.interface = new Socket();
         this.interface.on('connect',() => {
-            this.platform.log.info('Connection to LC7001 established:');
+            this.platform.log.info('Connection to LC7001 established.');
             this.platform.log.debug('-->IP Version:      ',this.interface.remoteFamily);
             this.platform.log.debug('-->IP Address:      ',this.interface.remoteAddress);
             this.platform.log.debug('-->TCP Port:        ',this.interface.remotePort);
@@ -113,8 +113,7 @@ export class LC7001 {
             }
         });
         this.interface.on('error',(err) => {
-            this.platform.log.error('Error on LC7001 connection:')
-            this.platform.log.error(err);
+            this.platform.log.error('Error on LC7001 connection:',err.toString());
         });
         this.interface.on('ready',() => {
             this.platform.log.debug('Connection to LC7001 ready for use.')

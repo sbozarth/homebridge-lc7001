@@ -1,11 +1,14 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
+interface MyPlatformAccessory extends PlatformAccessory {
+    lc7001Index?: number;
+}
 export declare class PlatformLC7001 implements DynamicPlatformPlugin {
     readonly log: Logger;
     readonly config: PlatformConfig;
     readonly api: API;
     readonly Service: typeof Service;
     readonly Characteristic: typeof Characteristic;
-    readonly accessories: PlatformAccessory[];
+    readonly accessories: MyPlatformAccessory[];
     private isInitialized;
     readonly logBroadcastDiagnostics: boolean;
     readonly logBroadcastMemory: boolean;
@@ -20,6 +23,7 @@ export declare class PlatformLC7001 implements DynamicPlatformPlugin {
     private findLC7001IndexByName;
     private matchAccessoriesToLC7001;
     private updateAccessoryFromLC7001;
-    configureAccessory(accessory: PlatformAccessory): void;
+    configureAccessory(accessory: MyPlatformAccessory): void;
 }
+export {};
 //# sourceMappingURL=platform.d.ts.map

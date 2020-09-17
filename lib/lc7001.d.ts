@@ -57,7 +57,7 @@ export declare class LC7001 {
     private lastSysPropTime;
     constructor(platform: PlatformLC7001, tcpOptions: TcpSocketConnectOpts, delimiter?: string);
     private checkInitialized;
-    private readonly commandID;
+    private get commandID();
     private cmdGetAccessory;
     private cmdGetLC7001Properties;
     private cmdGetSystemInfo;

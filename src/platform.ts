@@ -9,7 +9,10 @@ import {
   PlatformAccessory,
   PlatformConfig,
   Service,
-  Characteristic
+  Characteristic,
+  CharacteristicValue,
+  CharacteristicSetCallback,
+  CharacteristicGetCallback
 } from 'homebridge';
 
 import {
@@ -21,12 +24,16 @@ import {
   LC7001
 } from './lc7001';
 
+interface MyPlatformAccessory extends PlatformAccessory {
+  lc7001Index?: number;
+}
+
 export class PlatformLC7001 implements DynamicPlatformPlugin {
   //Homebridge Properties
   public readonly Service: typeof           Service = this.api.hap.Service;
   public readonly Characteristic: typeof    Characteristic = this.api.hap.Characteristic;
   // this is used to track restored cached accessories
-  public readonly accessories:              PlatformAccessory[] = [];
+  public readonly accessories:              MyPlatformAccessory[] = [];
 
   //Homebrige-derived propertis
   private isInitialized:                    boolean = false;
@@ -155,7 +162,7 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
       uuid = this.api.hap.uuid.generate(accessoryName + this.lc7001.macAddress);
     }
     this.log.debug('UUID generated:',uuid);
-    var newAccessory:PlatformAccessory = new this.api.platformAccessory(accessoryName,uuid);
+    var newAccessory: MyPlatformAccessory = new this.api.platformAccessory(accessoryName,uuid);
     newAccessory.lc7001Index = lc7001Index;
     this.log.debug('Configuring services for',accessoryName,'....');
     switch(this.lc7001.accessories[lc7001Index].PropertyList.DeviceType) {
@@ -166,7 +173,7 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
       case 'Dimmer':
         this.log.debug('Configuring',accessoryName,'as a Service.Lightbulb and Dimmer.')
         newAccessory.addService(this.api.hap.Service.Lightbulb,accessoryName,'Dimmer');
-        newAccessory.getService(this.api.hap.Service.Lightbulb).addCharacteristic(this.api.hap.Characteristic.Brightness);
+        newAccessory.getService(this.api.hap.Service.Lightbulb)!.addCharacteristic(this.api.hap.Characteristic.Brightness);
         break;
       default:
         this.log.error(accessoryName,'has DeviceType =',this.lc7001.accessories[lc7001Index].PropertyList.DeviceType,'which is not supported. No services configured.');
@@ -247,7 +254,7 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
     }
   }
 
-  private updateAccessoryFromLC7001(updatedAccessory:PlatformAccessory): void {
+  private updateAccessoryFromLC7001(updatedAccessory: MyPlatformAccessory): void {
     if (updatedAccessory !== undefined && updatedAccessory.lc7001Index !== undefined) {
       this.log.debug('Updating accessory',updatedAccessory.displayName,'....');
       const lc7001Accessory = this.lc7001.accessories[updatedAccessory.lc7001Index];
@@ -262,19 +269,19 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
       } else {
         switch(lc7001Accessory.PropertyList.DeviceType) {
           case 'Switch':
-            if (lc7001Accessory.PropertyList.Power != updatedAccessory.getService(this.api.hap.Service.Lightbulb).getCharacteristic(this.api.hap.Characteristic.On).value) {
+            if (lc7001Accessory.PropertyList.Power != updatedAccessory.getService(this.api.hap.Service.Lightbulb)!.getCharacteristic(this.api.hap.Characteristic.On).value) {
               this.log.debug('Updating Service.Lightbulb Characteristic.On.')
-              updatedAccessory.getService(this.api.hap.Service.Lightbulb).getCharacteristic(this.api.hap.Characteristic.On).updateValue(lc7001Accessory.PropertyList.Power);
+              updatedAccessory.getService(this.api.hap.Service.Lightbulb)!.getCharacteristic(this.api.hap.Characteristic.On).updateValue(lc7001Accessory.PropertyList.Power);
             }
             break;
           case 'Dimmer':
-            if (lc7001Accessory.PropertyList.Power != updatedAccessory.getService(this.api.hap.Service.Lightbulb).getCharacteristic(this.api.hap.Characteristic.On).value) {
+            if (lc7001Accessory.PropertyList.Power != updatedAccessory.getService(this.api.hap.Service.Lightbulb)!.getCharacteristic(this.api.hap.Characteristic.On).value) {
               this.log.debug('Updating Service.Lightbulb Characteristic.On.')
-              updatedAccessory.getService(this.api.hap.Service.Lightbulb).getCharacteristic(this.api.hap.Characteristic.On).updateValue(lc7001Accessory.PropertyList.Power);
+              updatedAccessory.getService(this.api.hap.Service.Lightbulb)!.getCharacteristic(this.api.hap.Characteristic.On).updateValue(lc7001Accessory.PropertyList.Power);
             }
-            if (lc7001Accessory.PropertyList.PowerLevel != updatedAccessory.getService(this.api.hap.Service.Lightbulb).getCharacteristic(this.api.hap.Characteristic.Brightness).value) {
+            if (lc7001Accessory.PropertyList.PowerLevel != updatedAccessory.getService(this.api.hap.Service.Lightbulb)!.getCharacteristic(this.api.hap.Characteristic.Brightness).value) {
               this.log.debug('Updating Service.Lightbulb Characteristic.Brightness.')
-              updatedAccessory.getService(this.api.hap.Service.Lightbulb).getCharacteristic(this.api.hap.Characteristic.Brightness).updateValue(lc7001Accessory.PropertyList.PowerLevel);
+              updatedAccessory.getService(this.api.hap.Service.Lightbulb)!.getCharacteristic(this.api.hap.Characteristic.Brightness).updateValue(lc7001Accessory.PropertyList.PowerLevel);
             }
             break;
           default:
@@ -296,17 +303,16 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
     }
   }
 
-  public configureAccessory(accessory: PlatformAccessory) {
+  public configureAccessory(accessory: MyPlatformAccessory) {
     this.log.info('Configuring accessory:',accessory.displayName);
     this.log.debug('Adding listener for "identify" event.')
-    accessory.on('identify', (paired: any,callback: Function) => {
+   accessory.on('identify', () => {
       this.log.info('Accessory',accessory.displayName," identified.");
-      callback();
     });
     if (accessory.getService(this.api.hap.Service.Lightbulb) !== undefined) {
-      if (accessory.getService(this.api.hap.Service.Lightbulb).testCharacteristic(this.api.hap.Characteristic.On)) {
+      if (accessory.getService(this.api.hap.Service.Lightbulb)!.testCharacteristic(this.api.hap.Characteristic.On)) {
         this.log.debug('Adding listener for Service.LightBulb Characteristic.On "set" event.')
-        accessory.getService(this.api.hap.Service.Lightbulb).getCharacteristic(this.api.hap.Characteristic.On).on('set',(value: boolean,callback: Function) => {
+        accessory.getService(this.api.hap.Service.Lightbulb)!.getCharacteristic(this.api.hap.Characteristic.On).on('set',(value: CharacteristicValue,callback: CharacteristicSetCallback) => {
           this.log.debug('HomeKit set Service.LightBulb Characteristic.On for',accessory.displayName,'to:',value);
           if (accessory.lc7001Index === undefined) {
             this.log.debug('Accessory updated by HomeKit before LC7001 initialized. No action taken.');
@@ -318,9 +324,9 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
           callback();
         });
       }
-      if (accessory.getService(this.api.hap.Service.Lightbulb).testCharacteristic(this.api.hap.Characteristic.Brightness)) {
+      if (accessory.getService(this.api.hap.Service.Lightbulb)!.testCharacteristic(this.api.hap.Characteristic.Brightness)) {
         this.log.debug('Adding listener for Service.LightBulb Characteristic.Brightness "set" event.')
-        accessory.getService(this.api.hap.Service.Lightbulb).getCharacteristic(this.api.hap.Characteristic.Brightness).on('set',(value: number,callback: Function) => {
+        accessory.getService(this.api.hap.Service.Lightbulb)!.getCharacteristic(this.api.hap.Characteristic.Brightness).on('set',(value: CharacteristicValue,callback: CharacteristicSetCallback) => {
           this.log.debug('HomeKit set Service.LightBulb Characteristic.Brightness for',accessory.displayName,'to:',value);
           if (accessory.lc7001Index === undefined) {
             this.log.debug('Accessory updated by HomeKit before LC7001 initialized. No action taken.');
