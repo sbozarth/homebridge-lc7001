@@ -307,7 +307,7 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
     this.log.info('Configuring accessory:',accessory.displayName);
     this.log.debug('Adding listener for "identify" event.')
    accessory.on('identify', () => {
-      this.log.info('Accessory',accessory.displayName," identified.");
+      this.log.info('Accessory',accessory.displayName,"identified.");
     });
     if (accessory.getService(this.api.hap.Service.Lightbulb) !== undefined) {
       if (accessory.getService(this.api.hap.Service.Lightbulb)!.testCharacteristic(this.api.hap.Characteristic.On)) {
