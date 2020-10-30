@@ -516,17 +516,20 @@ export class LC7001 {
                         }
                         break;
                     default:
-                        if (/^\*\*\*\*\*\* Got NTP -- IP:/.test(message.Service)) {
+                        if (/^\*+ Got NTP -- IP:/.test(message.Service)) {
                             this.platform.log.debug('Message type: NTP');
                             this.platform.log.debug('NTP succeeded on LC7001.');
                             this.lastNTPTime = message.PropertyList.CurrentTime;
-                        } else if (/^\*\*\*\*\*\* NTP one shot did not work/.test(message.Service)) {
+                        } else if (/^\*+ NTP one shot did not work/.test(message.Service)) {
                             this.platform.log.debug('Message type: NTP');
-                            this.platform.log.debug('NTP failed on LC7001.');
-                        } else if (/^\*\*\*\*\*\* NTP ALT TIME WORKED/.test(message.Service)) {
+                            this.platform.log.warn('NTP failed on LC7001.');
+                        } else if (/^\*+ NTP ALT TIME WORKED/.test(message.Service)) {
                             this.platform.log.debug('Message type: NTP');
-                            this.platform.log.debug('Alternative NTP succeeded on LC7001.')
+                            this.platform.log.warn('Alternative NTP succeeded on LC7001.')
                             this.lastNTPTime = message.PropertyList.CurrentTime;
+                        } else if (/^\*+ NIST ALT TIME DID NOT WORK/.test(message.Service)) {
+                            this.platform.log.debug('Message type: NTP');
+                            this.platform.log.warn('Alternative NTP failed on LC7001.')
                         } else {
                             if (message.ID == 0) {
                                 this.platform.log.error('Unknown LC7001 initiated service:\n',message);
