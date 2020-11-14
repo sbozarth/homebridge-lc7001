@@ -105,6 +105,7 @@ export class LC7001 {
             this.platform.log.debug('-->Local TCP Port:  ',this.interface.localPort);
         });
         this.interface.on('close',(hadError) => {
+            this.tcpBuffer = '';
             if (hadError) {
                 this.platform.log.error('Connection to LC7001 closed due to error. Waiting 30 seconds to reconnect....');
                 setTimeout(this.connectLC7001.bind(this),30000);
@@ -118,27 +119,7 @@ export class LC7001 {
             if (data.length <= 0) {
                 this.platform.log.debug('Length of data is zero! Nothing to do.')
             } else {
-                if (/^Hello V1 [0-9A-F]{32} [0-9A-F]{12}/.test(data)) {
-                    this.isAuthenticated = false;
-                    var splitData = data.split(' ');
-                    this.platform.log.debug('LC7001 has sent an authentication challenge:',splitData[2]);
-                    this.answerChallenge(Buffer.from(splitData[2],'hex'));
-                } else if (/^\[SETKEY\]/.test(data)) {
-                    this.platform.log.warn('Your LC7001 requires a password be configured. Please set the password using the Legrand Lighting Control app and add the password to configuration.');
-                    this.platform.log.warn('This plugin will not work until a password is set on the LC7001 and entered into the configuration.');
-                } else if (/^\[OK\]/.test(data)) {
-                    this.platform.log.info('Successfully authenticated to LC7001.')
-                    this.isAuthenticated = true;
-                    this.sendCMDArray([this.cmdGetSystemInfo(),this.cmdGetLC7001Properties(),this.cmdListAccessories()]);
-                } else if (/^\[INVALID\]/.test(data)) {
-                    this.platform.log.error('Failed to authenticate to LC7001; check the password. LC7001 will disconnect.');
-                } else {
-                    if (!this.isAuthenticated) {
-                        this.isAuthenticated = true;
-                        this.sendCMDArray([this.cmdGetSystemInfo(),this.cmdGetLC7001Properties(),this.cmdListAccessories()]);
-                    }
-                    this.processBuffer(data);
-                }
+                this.processBuffer(data);
             }
         });
         this.interface.on('error',(err) => {
@@ -288,49 +269,64 @@ export class LC7001 {
         this.platform.log.debug('Data received:',JSON.stringify(data));
         this.platform.log.debug('Delimiter:',JSON.stringify(this.delimiter));
         var splitBuffer = data.split(this.delimiter);
+        splitBuffer[0] = this.tcpBuffer + splitBuffer[0];
+        this.tcpBuffer = '';
         this.platform.log.debug('Segments received:',splitBuffer.length);
         splitBuffer.forEach((value,index) => {
             this.platform.log.debug('-->',(index + 1),':',JSON.stringify(value));
         });
-        try {
-            testJSON = JSON.parse(splitBuffer[0]);
-        } catch {
-            this.platform.log.debug('First segment is not good JSON.... Prepending buffer.');
-            splitBuffer[0] = this.tcpBuffer + splitBuffer[0];
-        }
-        this.tcpBuffer = splitBuffer.pop()!;
-        this.platform.log.debug('Processed segments:',splitBuffer.length);
-        splitBuffer.forEach((value,index) => {
-            this.platform.log.debug('-->',(index + 1),':',JSON.stringify(value));
-        });
-        this.platform.log.debug('Ending buffer:',JSON.stringify(this.tcpBuffer));
         if (splitBuffer.length > 0) {
-            this.platform.log.debug('Adding JSON to Receive Queue....');
             splitBuffer.forEach((value,index) => {
+                this.platform.log.debug('Processing segment:',(index + 1));
+                this.platform.log.debug('Checking if segment is good JSON....');
                 try {
                     this.responseQueue.push(JSON.parse(value));
+                    this.platform.log.debug('Segment is good JSON. Added JSON to Receive Queue.');
+                    if (!this.isAuthenticated) {
+                        this.platform.log.debug('LC7001 must not require authentication. Initializing LC7001....');
+                        this.isAuthenticated = true;
+                        this.sendCMDArray([this.cmdGetSystemInfo(),this.cmdGetLC7001Properties(),this.cmdListAccessories()]);
+                    }
                 } catch {
-                    if (value.indexOf('}{') >= 0) {
-                        this.platform.log.warn('Error parsing JSON. Possible undelimited JSON detected. Replacing all }{s with delimited version.');
-                        var splitvalue = value.replace(/\}\{/g, ('}' + this.delimiter + '{')).split(this.delimiter);
-                        this.platform.log.debug('Salvaged segments:',splitvalue.length);
-                        splitvalue.forEach((value2,index2) => {
-                            this.platform.log.debug('-->',(index2 + 1),':',JSON.stringify(value2));
-                        });
-                        splitvalue.forEach((value2,index2) => {
-                            try {
-                                this.responseQueue.push(JSON.parse(value2));
-                                this.platform.log.info('Succcesfully salvaged JSON.');
-                            } catch(err) {
-                                this.platform.log.error('Unable to parse JSON:\n',value2);
-                                this.platform.log.debug('Salvaged segment',(index2 + 1),'is not good JSON.');
-                                this.platform.log.debug('Skipping....');
-                            }
-                        });
+                    this.platform.log.debug('Segment is not good JSON. Checking if segment is an authentication message....');
+                    if (/^Hello V1 /.test(value)) {
+                        this.platform.log.debug('Segment is an authentication message. This LC7001 requires authentication.');
+                        this.isAuthenticated = false;
+                    } else if (/^[0-9A-F]{32} [0-9A-F]{12}/.test(value)) {
+                        this.platform.log.debug('LC7001 has sent an authentication challenge.');
+                        this.answerChallenge(Buffer.from(value.substr(0,32),'hex'));
+                    } else if (/^\[SETKEY\]/.test(value)) {
+                        this.platform.log.warn('Your LC7001 requires a password be configured. Please set the password using the Legrand Lighting Control app and add the password to configuration.');
+                        this.platform.log.warn('This plugin will not work until a password is set on the LC7001 and entered into the configuration.');
+                    } else if (/^\[OK\]/.test(value)) {
+                        this.platform.log.info('Successfully authenticated to LC7001. Initializing LC7001....')
+                        this.isAuthenticated = true;
+                        this.sendCMDArray([this.cmdGetSystemInfo(),this.cmdGetLC7001Properties(),this.cmdListAccessories()]);
+                    } else if (/^\[INVALID\]/.test(value)) {
+                        this.platform.log.error('Failed to authenticate to LC7001; check the password. LC7001 will disconnect.');
                     } else {
-                        this.platform.log.error('Unable to parse JSON:\n',value);
-                        this.platform.log.debug('Segment',(index + 1),'is not good JSON.');
-                        this.platform.log.debug('Skipping....');
+                        this.platform.log.debug('Segment is not an authentication message. Checking for undelimited JSON....');
+                        if (value.indexOf('}{') >= 0) {
+                            this.platform.log.warn('Possible undelimited JSON detected. Replacing all }{s with delimited version.');
+                            var splitValue = value.replace(/\}\{/g, ('}' + this.delimiter + '{')).split(this.delimiter);
+                            this.platform.log.debug('Salvaged segments:',splitValue.length);
+                            splitValue.forEach((value2,index2) => {
+                                this.platform.log.debug('-->',(index2 + 1),':',JSON.stringify(value2));
+                            });
+                            splitValue.forEach((value2,index2) => {
+                                try {
+                                    this.responseQueue.push(JSON.parse(value2));
+                                    this.platform.log.info('Succcesfully salvaged JSON. Added JSON to Receive Queue.');
+                                } catch(err) {
+                                    this.platform.log.error('Unable to parse segment:',value2);
+                                    this.platform.log.debug('Salvaged segment',(index2 + 1),'is not good JSON.');
+                                    this.platform.log.debug('Skipping....');
+                                }
+                            });
+                        } else {
+                            this.platform.log.error('Unable to parse segment:',value);
+                            this.platform.log.debug('Skipping....');
+                        }
                     }
                 }
             });
