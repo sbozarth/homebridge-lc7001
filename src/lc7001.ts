@@ -71,7 +71,7 @@ export class LC7001 {
     //Depricated properties
     //private samsungUserToken:         any = undefined;
     //private samsungRefreshToken:      any = undefined;
-    
+
     //LC7001-derived properties
     private lastDiagTime:               any = undefined;
     private lastMemTime:                any = undefined;
@@ -158,12 +158,12 @@ export class LC7001 {
     }
 
     private answerChallenge(challenge: Buffer): void {
-        this.platform.log.debug('Generating challenge answer....');
-        //this.platform.log.debug('Using password hash:',this.passwordHash.toString('hex').toUpperCase);
         var answer: string;
         var answerCipher = crypto.createCipheriv('AES-128-ECB',this.passwordHash,null);
+        this.platform.log.debug('Generating challenge answer....');
+        this.platform.log.debug('Using challenge:',challenge.toString('hex').toUpperCase());
+        //this.platform.log.debug('Using password hash:',this.passwordHash.toString('hex').toUpperCase());
         answer = answerCipher.update(challenge).toString('hex').toUpperCase();
-        answer += answerCipher.final().toString('hex').toUpperCase();
         this.platform.log.debug('Answer generated:',answer);
         this.platform.log.debug('Sending answer to LC7001....')
         this.interface.write(answer,'ascii');
@@ -218,7 +218,7 @@ export class LC7001 {
         this.platform.log.debug('Command:',cmd)
 		return cmd;
     }
-    
+
     private cmdListAccessories(): object {
 		var cmd:any = {};
         this.platform.log.debug('Building ListZones command....')
@@ -257,7 +257,7 @@ export class LC7001 {
     //If the LC7001 has no zones, it will never be initialized.
     private isInitializedTest(): boolean {
         var testcase:boolean = true;
-        
+
         if (this.zoneList.length == 0) {
             this.platform.log.debug('Zone list is empty: Fail');
 			testcase = false;
@@ -322,13 +322,13 @@ export class LC7001 {
                                 this.responseQueue.push(JSON.parse(value2));
                                 this.platform.log.info('Succcesfully salvaged JSON.');
                             } catch(err) {
-                                this.platform.log.error('Unable to parse JSON:\n',value2);    
+                                this.platform.log.error('Unable to parse JSON:\n',value2);
                                 this.platform.log.debug('Salvaged segment',(index2 + 1),'is not good JSON.');
                                 this.platform.log.debug('Skipping....');
                             }
                         });
                     } else {
-                        this.platform.log.error('Unable to parse JSON:\n',value);    
+                        this.platform.log.error('Unable to parse JSON:\n',value);
                         this.platform.log.debug('Segment',(index + 1),'is not good JSON.');
                         this.platform.log.debug('Skipping....');
                     }
@@ -382,7 +382,7 @@ export class LC7001 {
                 if (postProcessing[1]) {
                     this.isInitialized = false;
                     runCheckInitialized = true;
-                }        
+                }
             }
             if (!runCheckInitialized && !runScanAccessories) {
                 this.platform.log.debug('Response Queue empty. No post-processing requested.');
@@ -421,7 +421,7 @@ export class LC7001 {
                         this.lastDiagTime = message.CurrentTime;
                         if (this.platform.logBroadcastDiagnostics) {
                             this.platform.log.info('LC7001 BroadcastDiagnostices message:\n',message);
-                        }        
+                        }
                         break;
                     case 'BroadcastMemory':
                         this.platform.log.debug('Message type: BroadcastMemory');
@@ -435,7 +435,7 @@ export class LC7001 {
                         this.lastMemTime = message.CurrentTime;
                         if (this.platform.logBroadcastMemory) {
                             this.platform.log.info('LC7001 BroadcastMemory message:\n',message);
-                        }        
+                        }
                         break;
                     case 'ListZones':
                         this.platform.log.debug('Message type: ZoneList');
