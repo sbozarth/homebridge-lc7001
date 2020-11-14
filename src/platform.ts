@@ -186,9 +186,13 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
   private findLC7001IndexByName(accessoryName: string): number {
     this.log.debug('Finding',accessoryName,'on LC7001 accessories list....');
     var lc7001Index = this.lc7001.accessories.findIndex((value) => {
-      if ('PropertyList' in value) {
-        if ('Name' in value.PropertyList) {
-          return value.PropertyList.Name == accessoryName;
+      if (value !== undefined) {
+        if ('PropertyList' in value) {
+          if ('Name' in value.PropertyList) {
+            return value.PropertyList.Name == accessoryName;
+          } else {
+            return false;
+          }
         } else {
           return false;
         }
