@@ -10,6 +10,8 @@ export declare class LC7001 {
     private interface;
     private readonly tcpOptions;
     private _commandID;
+    private passwordHash;
+    private isAuthenticated;
     private readonly delimiter;
     private tcpBuffer;
     private commandQueue;
@@ -55,7 +57,8 @@ export declare class LC7001 {
     private lastPingSeq;
     private lastPingTime;
     private lastSysPropTime;
-    constructor(platform: PlatformLC7001, tcpOptions: TcpSocketConnectOpts, delimiter?: string);
+    constructor(platform: PlatformLC7001, password: string | undefined, tcpOptions: TcpSocketConnectOpts, delimiter?: string);
+    private answerChallenge;
     private checkInitialized;
     private get commandID();
     private cmdGetAccessory;

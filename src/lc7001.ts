@@ -1,4 +1,5 @@
-//LC7001 module will emit events when it initializes or an accessory is updated.
+import crypto from 'crypto';
+
 import {
     EventEmitter
 } from 'events';
@@ -24,6 +25,8 @@ export class LC7001 {
 
     //Private properties
     private _commandID:                 number = 0;
+    private passwordHash:               Buffer;
+    private isAuthenticated:            boolean;
     private readonly delimiter:         string;
     private tcpBuffer:                  string = '';
     private commandQueue:               any[] = [];
@@ -79,9 +82,15 @@ export class LC7001 {
 
     constructor(
         public readonly platform: PlatformLC7001,
+        password: string = '',
         tcpOptions:TcpSocketConnectOpts,
         delimiter: string = '\0'
     ) {
+        var passwordHasher = crypto.createHash('MD5');
+        passwordHasher.update(password);
+
+        this.passwordHash = passwordHasher.digest();
+        this.isAuthenticated = false;
         this.tcpOptions = tcpOptions;
         this.delimiter = delimiter;
 
@@ -109,7 +118,27 @@ export class LC7001 {
             if (data.length <= 0) {
                 this.platform.log.debug('Length of data is zero! Nothing to do.')
             } else {
-                this.processBuffer(data);
+                if (/^Hello V1 [0-9A-F]{32} [0-9A-F]{12}/.test(data)) {
+                    this.isAuthenticated = false;
+                    var splitData = data.split(' ');
+                    this.platform.log.debug('LC7001 has sent an authentication challenge:',splitData[2]);
+                    this.answerChallenge(Buffer.from(splitData[2],'hex'));
+                } else if (/^\[SETKEY\]/.test(data)) {
+                    this.platform.log.warn('Your LC7001 requires a password be configured. Please set the password using the Legrand Lighting Control app and add the password to configuration.');
+                    this.platform.log.warn('This plugin will not work until a password is set on the LC7001 and entered into the configuration.');
+                } else if (/^\[OK\]/.test(data)) {
+                    this.platform.log.info('Successfully authenticated to LC7001.')
+                    this.isAuthenticated = true;
+                    this.sendCMDArray([this.cmdGetSystemInfo(),this.cmdGetLC7001Properties(),this.cmdListAccessories()]);
+                } else if (/^\[INVALID\]/.test(data)) {
+                    this.platform.log.error('Failed to authenticate to LC7001; check the password. LC7001 will disconnect.');
+                } else {
+                    if (!this.isAuthenticated) {
+                        this.isAuthenticated = true;
+                        this.sendCMDArray([this.cmdGetSystemInfo(),this.cmdGetLC7001Properties(),this.cmdListAccessories()]);
+                    }
+                    this.processBuffer(data);
+                }
             }
         });
         this.interface.on('error',(err) => {
@@ -117,7 +146,8 @@ export class LC7001 {
         });
         this.interface.on('ready',() => {
             this.platform.log.debug('Connection to LC7001 ready for use.')
-            this.sendCMDArray([this.cmdGetSystemInfo(),this.cmdGetLC7001Properties(),this.cmdListAccessories()]);
+            //Previously, before authentication requirement, this is where commands began issuing. Moved to 'data' emitter.
+            //this.sendCMDArray([this.cmdGetSystemInfo(),this.cmdGetLC7001Properties(),this.cmdListAccessories()]);
         });
         this.interface.on('timeout',() => {
             this.platform.log.warn('Connection to LC7001 has been inactive for 30 seconds. Destroying connection....');
@@ -125,6 +155,18 @@ export class LC7001 {
         });
 
         this.connectLC7001();
+    }
+
+    private answerChallenge(challenge: Buffer): void {
+        this.platform.log.debug('Generating challenge answer....');
+        //this.platform.log.debug('Using password hash:',this.passwordHash.toString('hex').toUpperCase);
+        var answer: string;
+        var answerCipher = crypto.createCipheriv('AES-128-ECB',this.passwordHash,null);
+        answer = answerCipher.update(challenge).toString('hex').toUpperCase();
+        answer += answerCipher.final().toString('hex').toUpperCase();
+        this.platform.log.debug('Answer generated:',answer);
+        this.platform.log.debug('Sending answer to LC7001....')
+        this.interface.write(answer,'ascii');
     }
 
     private checkInitialized(): void {

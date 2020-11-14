@@ -47,6 +47,7 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
 
   //LC7001 Properties
   private lc7001:                           LC7001;
+  private readonly password:                string = '';
   private readonly tcpOptions:              TcpSocketConnectOpts = {host:'LCM1.local',port:2112};
   private readonly jsonDelimiter:           string = '\0';
 
@@ -59,8 +60,15 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
     this.log.info('Platform initializing....');
     this.log.debug('Parsing platform configuration:');
     for (var propertyNameConfig in this.config) {
-      this.log.debug("-->",propertyNameConfig,":",this.config[propertyNameConfig]);
+      if (propertyNameConfig == 'lc7001-password') {
+        this.log.debug('-->',propertyNameConfig,': ********');
+      } else {
+        this.log.debug('-->',propertyNameConfig,':',this.config[propertyNameConfig]);
+      }
     };
+    if ('lc7001-password' in this.config) {
+      this.password = this.config['lc7001-password'];
+    }
     if ('lc7001-hostname' in this.config) {
       this.tcpOptions.host = this.config['lc7001-hostname'];
     }
@@ -112,7 +120,7 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
     }
     
     this.log.debug('Creating LC7001 interface....');
-    this.lc7001 = new LC7001(this,this.tcpOptions,this.jsonDelimiter);
+    this.lc7001 = new LC7001(this,this.password,this.tcpOptions,this.jsonDelimiter);
     this.log.debug('LC7001 interface created.');
     this.lc7001.emitter.on('initialized',() => {
       this.log.debug('Received "initialized" event from LC7001 module.');
@@ -307,7 +315,7 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
     this.log.info('Configuring accessory:',accessory.displayName);
     this.log.debug('Adding listener for "identify" event.')
    accessory.on('identify', () => {
-      this.log.info('Accessory',accessory.displayName,"identified.");
+      this.log.info('Accessory',accessory.displayName,'identified.');
     });
     if (accessory.getService(this.api.hap.Service.Lightbulb) !== undefined) {
       if (accessory.getService(this.api.hap.Service.Lightbulb)!.testCharacteristic(this.api.hap.Characteristic.On)) {

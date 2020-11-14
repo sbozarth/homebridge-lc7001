@@ -15,6 +15,13 @@
         "minlength": 1,
         "required": true
       },
+      "lc7001-password": {
+        "title": "Password",
+        "type": "string",
+        "default": "",
+        "description": "Password assigned to LC7001 via the Legrand Lighting Control app. (Pre-2020 configurations may not have a password.)",
+        "required": false
+      },
       "lc7001-hostname": {
         "title": "Hostname",
         "type": "string",
@@ -112,6 +119,7 @@
   },
   "form": [
     "name",
+    "lc7001-password",
     "lc7001-hostname",
     {
       "key": "lc7001-port",
