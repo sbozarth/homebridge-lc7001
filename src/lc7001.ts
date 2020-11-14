@@ -262,8 +262,6 @@ export class LC7001 {
     }
 
     private processBuffer(data: string): void {
-        var testJSON: any;
-
         this.platform.log.debug('Processing data received from LC7001....');
         this.platform.log.debug('Starting buffer:',JSON.stringify(this.tcpBuffer));
         this.platform.log.debug('Data received:',JSON.stringify(data));
