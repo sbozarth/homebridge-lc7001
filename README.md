@@ -23,6 +23,7 @@ All other parameters are optional:
     {
       "platform" : "LC7001",
       "name" : "LC7001",
+      "lc7001-password: : "********",
       "lc7001-hostname" : "LCM1.local",
       "lc7001-port" : 2112,
       "lc7001-localaddress" : undefined,
@@ -42,6 +43,7 @@ Parameter | Description
 --------- | -----------
 platform | This is coded into the plugin and must match PLATFORM_NAME in src/settings.ts; do not change one unless you change the other.
 name | This is whatever you would like it to be; it is what shows up in the Homebridge log.
+lc7001-password | If your LC7001 has authentication enabled, you will need to supply the password in this field.
 lc7001-hostname | If you do not specify the hostname/IP of the LC7001, the default of "LCM1.local" will be used. "LCM1.local" is a mDNS hostname that the LC7001 will answer. "LCM1.local" can be replaced with any hostname or IP address that can be resolved by the net.Socket Node.js object.
 lc7001-port | If you do not specify the TCP port number for the LC7001, the default of 2112 will be used.
 lc7001-localaddress | Allows you to specify which source IP address will be used to contact the LC7001.
@@ -50,7 +52,7 @@ lc7001-family | Allows you to specify the IP version to use to contact the LC700
 lc7001-delimiter | Allows you to specify the character the LC7001 uses to separate JSON objects. You should not need to change this unless the LC7001 firmware is changed.
 logBroadcastDiagnostics | The LC7001 regularly transmits diagnostic information. This logs those messages.
 logBroadcastMemory | The LC7001 regularly transmits memory usage information. This logs those messages.
-logDebugMessages |  The LC7001 frequently transmits debug messages. This logs those messages.
+logDebugMessages |  The LC7001 frequently transmits debug messages. This logs those messages. (Homebridge debugging is enabled by passing the -D switch to homebridge.)
 logEliotErrors | The LC7001 frequenty transmits messages labled "EliotErrors." This logs those messages.
 useOldUUID | Prior to version 1.0.0, this plugin used the name of an accessory on the LC7001 to generate the UUID. Staring with version 1.0.0, this plugin uses a mix of the name and the MAC address of the LC7001. This change was made to prevent UUID collisions. Setting this option to true will cause the plugin to use the old method.
 
