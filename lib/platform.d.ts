@@ -16,6 +16,7 @@ export declare class PlatformLC7001 implements DynamicPlatformPlugin {
     readonly logEliotErrors: boolean;
     private readonly useOldUUID;
     private lc7001;
+    private readonly password;
     private readonly tcpOptions;
     private readonly jsonDelimiter;
     constructor(log: Logger, config: PlatformConfig, api: API);
