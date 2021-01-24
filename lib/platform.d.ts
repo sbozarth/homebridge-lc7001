@@ -19,6 +19,8 @@ export declare class PlatformLC7001 implements DynamicPlatformPlugin {
     private readonly password;
     private readonly tcpOptions;
     private readonly jsonDelimiter;
+    private readonly tcptimeout;
+    private readonly tcpretrywait;
     constructor(log: Logger, config: PlatformConfig, api: API);
     private addAccessory;
     private findLC7001IndexByName;

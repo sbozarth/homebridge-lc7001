@@ -29,6 +29,9 @@ export class LC7001 {
     private isAuthenticated:            boolean;
     private readonly delimiter:         string;
     private tcpBuffer:                  string = '';
+    private readonly tcpRetrySeconds:   number;
+    private readonly tcpTimeout:        number;
+    private readonly tcpTimeoutSeconds: number;
     private commandQueue:               any[] = [];
     private responseQueue:              any[] = [];
 
@@ -84,7 +87,9 @@ export class LC7001 {
         public readonly platform: PlatformLC7001,
         password: string = '',
         tcpOptions:TcpSocketConnectOpts,
-        delimiter: string = '\0'
+        delimiter: string = '\0',
+        tcpTimeoutSeconds: number = 30,
+        tcpRetrySeconds: number = 30
     ) {
         var passwordHasher = crypto.createHash('MD5');
         passwordHasher.update(password);
@@ -93,6 +98,9 @@ export class LC7001 {
         this.isAuthenticated = false;
         this.tcpOptions = tcpOptions;
         this.delimiter = delimiter;
+        this.tcpRetrySeconds = tcpRetrySeconds;
+        this.tcpTimeoutSeconds = tcpTimeoutSeconds;
+        this.tcpTimeout = this.tcpTimeoutSeconds * 1000;
 
         this.emitter = new EventEmitter;
         this.interface = new Socket();
@@ -107,8 +115,8 @@ export class LC7001 {
         this.interface.on('close',(hadError) => {
             this.tcpBuffer = '';
             if (hadError) {
-                this.platform.log.error('Connection to LC7001 closed due to error. Waiting 30 seconds to reconnect....');
-                setTimeout(this.connectLC7001.bind(this),30000);
+                this.platform.log.error('Connection to LC7001 closed due to error. Waiting',this.tcpRetrySeconds,'seconds to reconnect....');
+                setTimeout(this.connectLC7001.bind(this),(this.tcpRetrySeconds * 1000));
             } else {
                 this.platform.log.info('Connection to LC7001 closed. Reconnecting....');
                 this.connectLC7001();
@@ -131,7 +139,7 @@ export class LC7001 {
             //this.sendCMDArray([this.cmdGetSystemInfo(),this.cmdGetLC7001Properties(),this.cmdListAccessories()]);
         });
         this.interface.on('timeout',() => {
-            this.platform.log.warn('Connection to LC7001 has been inactive for 30 seconds. Destroying connection....');
+            this.platform.log.warn('Connection to LC7001 has been inactive for',this.tcpTimeoutSeconds,'seconds. Destroying connection....');
             this.interface.destroy();
         });
 
@@ -230,7 +238,7 @@ export class LC7001 {
         this.platform.log.debug('--> family:',this.tcpOptions.family);
         this.interface.connect(this.tcpOptions,() => {
             this.interface.setEncoding('ascii');
-            this.interface.setTimeout(30000);
+            this.interface.setTimeout(this.tcpTimeout);
         });
     }
 

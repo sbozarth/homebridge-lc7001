@@ -1,4 +1,3 @@
-import { API } from 'homebridge';
-declare const _default: (api: API) => void;
+declare const _default: (api: any) => void;
 export = _default;
 //# sourceMappingURL=index.d.ts.map

@@ -80,6 +80,24 @@
         "description": "Delimiter LC7001 uses to separate JSON objects. Default is null character. (Escape strings will need to be manually configured.)",
         "required": false
       },
+      "lc7001-tcptimeout": {
+        "title": "TCP Inactivity Timeout",
+        "type": "integer",
+        "placeholder": 30,
+        "description": "Seconds of inactivity before TCP connection is reset. 0 disables timeout.",
+        "minimum": 0,
+        "slider": false,
+        "required": false
+      },
+      "lc7001-tcpretrywait": {
+        "title": "TCP Retry Wait Time",
+        "type": "integer",
+        "placeholder": 30,
+        "description": "Seconds to wait before attempting to reconnect to LC7001.",
+        "minimum": 0,
+        "slider": false,
+        "required": false
+      },
       "logBroadcastDiagnostics": {
         "title": "Log LC7001 BroadcastDiagnostics messages?",
         "type": "boolean",
@@ -135,6 +153,8 @@
         },
         "lc7001-family",
         "lc7001-delimiter",
+        "lc7001-tcptimeout",
+        "lc7001-tcpretrywait",
         "logBroadcastDiagnostics",
         "logBroadcastMemory",
         "logDebugMessages",

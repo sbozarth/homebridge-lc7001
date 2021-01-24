@@ -14,6 +14,9 @@ export declare class LC7001 {
     private isAuthenticated;
     private readonly delimiter;
     private tcpBuffer;
+    private readonly tcpRetrySeconds;
+    private readonly tcpTimeout;
+    private readonly tcpTimeoutSeconds;
     private commandQueue;
     private responseQueue;
     private addALight;
@@ -57,7 +60,7 @@ export declare class LC7001 {
     private lastPingSeq;
     private lastPingTime;
     private lastSysPropTime;
-    constructor(platform: PlatformLC7001, password: string | undefined, tcpOptions: TcpSocketConnectOpts, delimiter?: string);
+    constructor(platform: PlatformLC7001, password: string | undefined, tcpOptions: TcpSocketConnectOpts, delimiter?: string, tcpTimeoutSeconds?: number, tcpRetrySeconds?: number);
     private answerChallenge;
     private checkInitialized;
     private get commandID();

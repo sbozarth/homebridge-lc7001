@@ -50,7 +50,8 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
   private readonly password:                string = '';
   private readonly tcpOptions:              TcpSocketConnectOpts = {host:'LCM1.local',port:2112};
   private readonly jsonDelimiter:           string = '\0';
-
+  private readonly tcptimeout:              number = 30;
+  private readonly tcpretrywait:            number = 30;
 
   constructor(
     public readonly log:    Logger,
@@ -87,6 +88,12 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
     if ('lc7001-delimiter' in this.config) {
       this.jsonDelimiter = this.config['lc7001-delimiter'];
     }
+    if ('lc7001-tcptimeout' in this.config) {
+      this.tcptimeout = this.config['lc7001-tcptimeout'];
+    }
+    if ('lc7001-tcpretrywait' in this.config) {
+      this.tcpretrywait = this.config['lc7001-tcpretrywait'];
+    }
     if ('logBroadcastDiagnostics' in this.config) {
       this.logBroadcastDiagnostics = this.config['logBroadcastDiagnostics']
     }
@@ -118,9 +125,15 @@ export class PlatformLC7001 implements DynamicPlatformPlugin {
     if (this.jsonDelimiter) {
       this.log.debug('Delimiter:',JSON.stringify(this.jsonDelimiter));
     }
+    if (this.jsonDelimiter) {
+      this.log.debug('TCP Timeout:',this.tcptimeout);
+    }
+    if (this.jsonDelimiter) {
+      this.log.debug('TCP Retry Wait Time:',this.tcpretrywait);
+    }
     
     this.log.debug('Creating LC7001 interface....');
-    this.lc7001 = new LC7001(this,this.password,this.tcpOptions,this.jsonDelimiter);
+    this.lc7001 = new LC7001(this,this.password,this.tcpOptions,this.jsonDelimiter,this.tcptimeout,this.tcpretrywait);
     this.log.debug('LC7001 interface created.');
     this.lc7001.emitter.on('initialized',() => {
       this.log.debug('Received "initialized" event from LC7001 module.');
