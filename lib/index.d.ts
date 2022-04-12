@@ -1,3 +1,3 @@
-declare const _default: (api: any) => void;
+declare const _default: (api: API) => void;
 export = _default;
 //# sourceMappingURL=index.d.ts.map
