@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { EventEmitter } from 'events';
 import { TcpSocketConnectOpts } from 'net';
 import { PlatformLC7001 } from './platform';
